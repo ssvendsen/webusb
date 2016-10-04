@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <script src="atmelcmsisdevice.js"></script>
+    <script src="atmeldapvendorcommands.js"></script>
+    <script>
+        var myVar = 5;
+        function trySend() {
+            var commandString = document.getElementById('commandData').value;
+            var commandBytes = commandString.split(" ").map((commandFragment) => {
+                return parseInt(commandFragment, 16);
+            });
+
+            var device = new CmsisDevice(atmelVendorId);
+            var vendorCommands = new AtmelDapProtocolVendorCommands(device);
+            var link = new AtmelDapProtocolCmdRspLink(vendorCommands);
+
+            device.selectAndConnect().then(() => {
+                link.write(new Uint8Array(commandBytes));
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        }
+    </script>
+
+    <p>Easy webusb: chrome.exe --enable-experimental-web-platform-features --disable-webusb-security</p>
+    <p>Quick intro: <a href="https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web">https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web</a></p>
+    <button onclick="tryConnect();">Click to list connected Atmel tools and connect to one</button>
+    <p/>
+    <input id="commandData" width="200"/> <button onclick="trySend()">Send command over AVR_CMD</button>
+    <p/>
+    <input id="responseData" readonly="true" width="200"/> (received data over AVR_RSP)</button>
+</body>
+</html>
