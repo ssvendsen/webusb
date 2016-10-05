@@ -48,36 +48,13 @@ class CmsisDevice {
         var reportData = new Uint8Array(this.outEndpointPacketSize);
         reportData.set(command.slice(0, this.outEndpointPacketSize));
 
-        var readPromise = this.device.transferIn(inEndpoint, this.inEndpointPacketSize).then((result) => {
+        return this.device.transferOut(outEndpoint, reportData).then(() => {
+            return this.device.transferIn(inEndpoint, this.inEndpointPacketSize);
+        }).then((result) => {
             var dummy = new Uint8Array(result.data);
             return Promise.resolve(dummy);
         }).catch(error => {
             return Promise.reject(error);
-        });
-
-        var readPromise2 = this.device.transferIn(inEndpoint, this.inEndpointPacketSize).then((result) => {
-            var dummy2 = new Uint8Array(result.data);
-            return Promise.resolve(dummy2);
-        }).catch(error => {
-            return Promise.reject(error);
-        });
-
-        var writePromise = this.device.transferOut(outEndpoint, reportData).then(() => {
-            return Promise.resolve();
-        }).catch(error => {
-            return Promise.reject(error);
-        });
-
-//            return this.device.transferIn(inEndpoint, this.inEndpointPacketSize);
-//        }).then((result) => {
-//            var dummy = new Uint8Array(result.data);
-//            return Promise.resolve(dummy);
-//        }).catch(error => {
-//            return Promise.reject(error);
-//        });
-
-        return Promise.all([readPromise, readPromise2, writePromise]).then((result) => {
-            return Promise.resolve();
         });
     }
 
