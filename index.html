@@ -32,8 +32,9 @@
         }
     </script>
 
-    <p>Easy webusb: chrome.exe --enable-experimental-web-platform-features --disable-webusb-security</p>
-    <p>Quick intro: <a href="https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web">https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web</a></p>
+    <p>This WebUsb experiment works only with Chrome Dev Channel, started with the feature flags shown below.</p>
+    <p>chrome.exe --enable-experimental-web-platform-features --disable-webusb-security</p>
+    <p>Quick intro of WebUsb: <a href="https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web">https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web</a></p>
     <button onclick="tryConnect();">Click to list connected Atmel tools and connect to one</button>
     <p/>
     <input id="commandData" size="100" width="500"/> <button onclick="trySend()">Send command over AVR_CMD</button>
