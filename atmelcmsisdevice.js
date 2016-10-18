@@ -51,8 +51,7 @@ class CmsisDevice {
         return this.device.transferOut(outEndpoint, reportData).then(() => {
             return this.device.transferIn(inEndpoint, this.inEndpointPacketSize);
         }).then((result) => {
-            var dummy = new Uint8Array(result.data);
-            return Promise.resolve(dummy);
+            return Promise.resolve(new Uint8Array(result.data.buffer));
         }).catch(error => {
             return Promise.reject(error);
         });

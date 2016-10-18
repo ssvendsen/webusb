@@ -130,7 +130,7 @@ class AtmelDapProtocolVendorCommands
             var result = {};
             result.packetIndex = fragmentInfo >> 4;
             result.numPackets = fragmentInfo & 0x0F;
-            result.data = new Uint8Array(response, RESPONSE_HEADER_SIZE, dataSize);
+            result.data = response.subarray(RESPONSE_HEADER_SIZE, RESPONSE_HEADER_SIZE + dataSize);
             return Promise.resolve(result);
         });
     }
@@ -163,7 +163,7 @@ class AtmelDapProtocolVendorCommands
             throw "Malformed response received on sending AVR_EVT";
 
         var result = {};
-        result.data = new Uint8Array(response, RESPONSE_HEADER_SIZE, dataSize);
+        result.data = response.subarray(RESPONSE_HEADER_SIZE, RESPONSE_HEADER_SIZE + dataSize);
         return result;
     }
 
@@ -214,37 +214,33 @@ class AtmelDapProtocolCmdRspLink
     }
 
     // Read data as a sequence of AVR_RSPs
-    read(numBytes)
+    read()
     {
-        var data = new Uint8Array(numBytes);
-        var dataOffset = 0;
+        var chunkReceiver = function(vendorCommands, data, dataOffset) {
 
-        var retriesLeftWithoutData = 5; // poor man's timeout (there MUST be a real timeout for the while loop in case of protocol errors)
-
-        while (retriesLeftWithoutData)
-        {
-            var result = this.vendorCommands.receiveAvrResponse();
-
-            //result.packetIndex = sequence >> 4;
-            //result.numPackets = sequence & 0x0F;
-            //result.data = new Uint8Array(response, 4, dataSize);
-
-            // If there was meaningful data
-            if (result.numPackets) {
-                // omitted: check if packetIndex etc is as expected
-                data.set(result.data, dataOffset);
-                dataOffset += result.data.byteLength;
-                if (result.packetIndex == result.numPackets) // If final packet
-                    return data.subarray(0, dataOffset);
-                retriesLeftWithoutData = 5;
-            }
-            else {
-                // omitted: wait for a while before trying again... rewrite using Promises or similar
-                retriesLeftWithoutData--;
-            }
+            return vendorCommands.receiveAvrResponse().then((result) => {
+                // If there was meaningful data
+                if (result.numPackets) {
+                    // omitted: check if packetIndex etc is as expected
+                    data.set(result.data, dataOffset);
+                    dataOffset += result.data.byteLength;
+                    // If final packet
+                    if (result.packetIndex == result.numPackets)
+                        return Promise.resolve(data.subarray(0, dataOffset));
+                }
+                // If there was no data
+                else
+                {
+                    // wait somewhat
+                }
+                // Try read data again / read more data
+                return chunkReceiver(vendorCommands, data, dataOffset);
+            });
         }
 
-        throw "Never got expected data on AVR_RSP"
+        var data = new Uint8Array(0x10000); // What is the biggest response?
+        var dataOffset = 0;
+        return chunkReceiver(this.vendorCommands, data, dataOffset);
     }
 
 }

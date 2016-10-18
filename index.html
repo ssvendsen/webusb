@@ -20,7 +20,12 @@
             var link = new AtmelDapProtocolCmdRspLink(vendorCommands);
 
             device.selectAndConnect().then(() => {
-                link.write(new Uint8Array(commandBytes));
+                return link.write(new Uint8Array(commandBytes));
+            }).then(() => {
+                return link.read();
+            }).then((data) => {
+                var responseString = data.map((byte) => {return byte.toString(16) + " ";}).join(" ");
+                document.getElementById('responseData').value = responseString;
             }).catch(error => {
                 return Promise.reject(error);
             });
@@ -31,8 +36,8 @@
     <p>Quick intro: <a href="https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web">https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web</a></p>
     <button onclick="tryConnect();">Click to list connected Atmel tools and connect to one</button>
     <p/>
-    <input id="commandData" width="200"/> <button onclick="trySend()">Send command over AVR_CMD</button>
+    <input id="commandData" size="100" width="500"/> <button onclick="trySend()">Send command over AVR_CMD</button>
     <p/>
-    <input id="responseData" readonly="true" width="200"/> (received data over AVR_RSP)</button>
+    <input id="responseData" size="100" width="500"/> (received data over AVR_RSP)</button>
 </body>
 </html>
