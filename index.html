@@ -8,35 +8,41 @@
     <script src="atmelcmsisdevice.js"></script>
     <script src="atmeldapvendorcommands.js"></script>
     <script>
-        var myVar = 5;
+
+        var device = new CmsisDevice(atmelVendorId);
+        var vendorCommands = new AtmelDapProtocolVendorCommands(device);
+        var link = new AtmelDapProtocolCmdRspLink(vendorCommands);
+
+        function tryConnect() {
+            device.selectAndConnect().then(() => {
+                document.getElementById('productName').innerHTML = "Connected to " + device.id;
+            }).catch(error => {
+                alert(error);
+            });
+        }
+
         function trySend() {
             var commandString = document.getElementById('commandData').value;
             var commandBytes = commandString.split(" ").map((commandFragment) => {
                 return parseInt(commandFragment, 16);
             });
-
-            var device = new CmsisDevice(atmelVendorId);
-            var vendorCommands = new AtmelDapProtocolVendorCommands(device);
-            var link = new AtmelDapProtocolCmdRspLink(vendorCommands);
-
-            device.selectAndConnect().then(() => {
-                return link.write(new Uint8Array(commandBytes));
-            }).then(() => {
+            link.write(new Uint8Array(commandBytes)).then(() => {
                 return link.read();
             }).then((data) => {
                 var responseString = data.map((byte) => {return byte.toString(16) + " ";}).join(" ");
                 document.getElementById('responseData').value = responseString;
             }).catch(error => {
-                return Promise.reject(error);
+                alert(error);
             });
         }
     </script>
 
-    <p>This WebUsb experiment works only with Chrome Dev Channel, started with the feature flags shown below.</p>
+    <p>This WebUsb experiment works with Chrome Dev Channel, started with the feature flags shown below. It only works with (m)EDBG tools.</p>
     <p>chrome.exe --enable-experimental-web-platform-features --disable-webusb-security</p>
     <p>Quick intro of WebUsb: <a href="https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web">https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web</a></p>
-    <!--button onclick="tryConnect();">Click to list connected Atmel tools and connect to one</button-->
-    <p><input id="commandData" size="100" width="500"/> <button onclick="trySend()">Send command over AVR_CMD</button></p>
-    <p><input id="responseData" size="100" width="500"/> (received data over AVR_RSP)</button></p>
+    <p><button onclick="tryConnect();">Click to list connected Atmel tools and connect to one</button></p>
+    <p><div id="productName"></div></p>
+    <p><input id="commandData" size="100" width="500" value="0E 00 00 00 01 10 00"/><button onclick="trySend()">Send command over AVR_CMD</button></p>
+    <p><input id="responseData" size="100" width="500"/> (received data over AVR_RSP)</p>
 </body>
 </html>

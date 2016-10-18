@@ -20,6 +20,12 @@ class CmsisDevice {
         this.outEndpointSize = undefined;
     }
 
+    get id() {
+        if (this.device && this.device.opened)
+            return this.device.productName + " " + this.device.serialNumber;
+        else
+            return undefined;
+    }
     get outEndpointPacketSize() { return this.outEndpointSize; }
     get inEndpointPacketSize() { return this.inEndpointSize; }
 
@@ -38,6 +44,7 @@ class CmsisDevice {
             var interfaceAlt = this.device.configuration.interfaces[cmsisInterfaceNumber].alternate;
             this.inEndpointSize = interfaceAlt.endpoints[1].packetSize;
             this.outEndpointSize = interfaceAlt.endpoints[0].packetSize;
+            return Promise.resolve();
         }).catch(error => {
             console.log(error);
             return Promise.reject(error);
