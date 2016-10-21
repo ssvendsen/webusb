@@ -34,7 +34,10 @@ class CmsisDevice {
             this.device = selectedDevice;
             return this.device.open(); // Begin a session.
         }).then(() => {
-            if (this.device.configuration.configurationValue != edbgConfigurationValue)
+            // observations:
+            // on windows, configuration can be preselected and re-selecting the same configuration causes a soft reset (?)
+            // on android, configuration can be null, so we can't just check what the active configuration is
+            if (!this.device.configuration || this.device.configuration.configurationValue != edbgConfigurationValue)
                 return this.device.selectConfiguration(edbgConfigurationValue);
             else
                 return Promise.resolve();
